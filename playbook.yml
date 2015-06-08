@@ -1,0 +1,26 @@
+---
+- hosts: all
+  sudo: true
+  vars:
+    hadoop_download_path: "/vagrant/downloads/hadoop-2.7.0.tar.gz"
+    hadoop_unpack_path: "/vagrant/downloads/hadoop-2.7.0"
+    hadoop_install_path: "/usr/local/hadoop"
+    hadoop_user: hduser
+    hadoop_group: hadoop
+  tasks:
+    - name: Download Hadoop
+      get_url: url=http://apache.cs.utah.edu/hadoop/common/hadoop-2.7.0/hadoop-2.7.0.tar.gz dest={{hadoop_download_path}} mode=0755 sha256sum=ad270af05fff59d3f7021efe79328ed92dadfa64aa5ab4fcde4a204f803dbf9e
+      when: not (hadoop_download_path.stat.isfile is defined and hadoop_download_path.stat.isfile)
+    - name: Unpack Hadoop release
+      unarchive: src={{hadoop_download_path}} dest={{hadoop_unpack_path}}
+      when: not (hadoop_unpack_path.stat.isdir is defined and hadoop_unpack_path.stat.isdir)
+    - name: Delete old Installation files
+      shell: rm -rf {{hadoop_install_path}}
+    - name: Create Hadoop Group
+      group: name=hadoop state=present
+    - name: Create Hadoop user
+      # Password: hadoop
+      user: name=hduser group=hadoop password=$6$uEUyl8lptRWi/WT7$heGGPyiUWKcCJ4NU23N7o9EG/EVPMWLvCRJBzaHIAlJJhFXpgry.5dXQarIoW4/60DjKs4lfPAI1R/5j3XJ2m.
+    - name: Create Hadoop Installation Directory: {{hadoop_install_path}}
+      file: path={{hadoop_install_path}} state=directory
+
